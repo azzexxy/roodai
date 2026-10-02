@@ -1,8 +1,10 @@
 import PhotosUI
+import SwiftData
 import SwiftUI
 
 @MainActor
 struct ContentView: View {
+    @Environment(\.modelContext) private var context
     @State private var image: UIImage?
     @State private var analysis: MealAnalysis?
     @State private var errorMessage: String?
@@ -13,6 +15,10 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var photoItem: PhotosPickerItem?
     @State private var analysisTask: Task<Void, Never>?
+
+    @State private var logDate = Date.now
+    @State private var mealType = MealType.suggested(for: .now)
+    @State private var addedToDiary = false
 
     private var cameraAvailable: Bool {
         UIImagePickerController.isSourceTypeAvailable(.camera)
@@ -44,6 +50,7 @@ struct ContentView: View {
                             .background(.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
                     } else if let analysis {
                         MealResultView(analysis: analysis)
+                        addToDiarySection(analysis)
                     }
 
                     if image != nil && !isAnalyzing {
@@ -96,6 +103,37 @@ struct ContentView: View {
         .padding(.vertical, 60)
     }
 
+    private func addToDiarySection(_ analysis: MealAnalysis) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Picker("Meal", selection: $mealType) {
+                ForEach(MealType.allCases) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            DatePicker("When", selection: $logDate)
+
+            if addedToDiary {
+                Label("Added to diary", systemImage: "checkmark.circle.fill")
+                    .font(.headline)
+                    .foregroundStyle(.green)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+            } else {
+                Button {
+                    context.insert(DiaryEntry(date: logDate, mealType: mealType,
+                                              analysis: analysis, image: image))
+                    addedToDiary = true
+                } label: {
+                    Label("Add to diary", systemImage: "plus.circle.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+            }
+        }
+        .padding()
+        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+    }
+
     private var refineSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Add details (optional)")
@@ -132,6 +170,8 @@ struct ContentView: View {
     private func use(_ newImage: UIImage) {
         image = newImage
         note = ""
+        logDate = .now
+        mealType = .suggested(for: .now)
         analyze()
     }
 
@@ -141,6 +181,7 @@ struct ContentView: View {
         isAnalyzing = true
         errorMessage = nil
         analysis = nil
+        addedToDiary = false
 
         let analyzer = MacroAnalyzer(apiKey: KeychainStore.apiKey)
         let currentNote = note
@@ -160,4 +201,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .modelContainer(for: DiaryEntry.self, inMemory: true)
 }

@@ -23,6 +23,29 @@ using structured outputs so the response always matches a fixed JSON schema.
 5. Tap **Snap**, take a photo, and the breakdown appears a few seconds later.
    Add details like "cooked in butter" or "large portion" and tap **Re-analyze**
    to refine the estimate.
+6. Pick the meal (breakfast, lunch, dinner or snack), adjust the time if needed,
+   and tap **Add to diary**.
+
+## Diary and goals
+
+The **Diary** tab saves every logged meal on the device (SwiftData).
+
+- A week strip at the top lets you jump between days and weeks. Each day's ring
+  fills toward your calorie goal and turns into a green check when every goal is hit.
+- The selected day shows how much calories, protein, carbs, fat, fiber and sugar
+  you've had against each goal, what's left, and whether each goal is hit.
+- Meals are grouped by breakfast, lunch, dinner and snack. Tap one to see its full
+  breakdown or change its meal type or time. Swipe to delete.
+- **This week** shows days logged, days with every goal hit, and for each nutrient
+  how many days you hit it plus your daily average.
+
+Set your targets with the **Goals** button (target icon). How a goal counts as hit:
+
+| Nutrient | Hit when |
+|---|---|
+| Protein, fiber | you reach at least the goal |
+| Sugar | you stay at or under the goal |
+| Calories, carbs, fat | you're within 10% of the goal |
 
 ## Project layout
 
@@ -30,7 +53,10 @@ using structured outputs so the response always matches a fixed JSON schema.
 |---|---|
 | `MacroAnalyzer.swift` | Builds the API request (image + prompt + JSON schema) and decodes the result |
 | `Models.swift` | `MealAnalysis` / `FoodItem` types and macro totals |
-| `ContentView.swift` | Main screen: capture, analyze, show results |
+| `ContentView.swift` | Snap tab: capture, analyze, show results, add to diary |
+| `DiaryView.swift` | Diary tab: week strip, daily goal progress, meals, weekly summary |
+| `DiaryEntry.swift` | SwiftData model for a logged meal |
+| `Goals.swift` / `GoalsView.swift` | Daily goals, how each one counts as hit, and the editor |
 | `MealResultView.swift` | Calorie ring, macro rows and per-item breakdown |
 | `CameraPicker.swift` | SwiftUI wrapper around the system camera |
 | `SettingsView.swift` / `KeychainStore.swift` | API key entry and storage |
